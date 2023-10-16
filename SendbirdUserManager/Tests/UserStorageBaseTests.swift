@@ -20,7 +20,7 @@ open class UserStorageBaseTests: XCTestCase {
         let storage = self.userStorageType().init()
         
         let user = SBUser(userId: "1")
-        storage.setUser(user, for: "1")
+        storage.upsertUser(user)
         
         XCTAssert(storage.getUser(for: "1")?.userId == "1")
         XCTAssert(storage.getUsers().first?.userId == "1")
@@ -31,7 +31,7 @@ open class UserStorageBaseTests: XCTestCase {
         let storage = self.userStorageType().init()
         
         let user = SBUser(userId: "1")
-        storage.setUser(user, for: user.userId)
+        storage.upsertUser(user)
         
         let retrievedUser = storage.getUser(for: user.userId)
         XCTAssertEqual(user.nickname, retrievedUser?.nickname)
@@ -43,7 +43,7 @@ open class UserStorageBaseTests: XCTestCase {
         let users = [SBUser(userId: "1"), SBUser(userId: "2")]
         
         for user in users {
-            storage.setUser(user, for: user.userId)
+            storage.upsertUser(user)
         }
         
         let retrievedUsers = storage.getUsers()
@@ -63,7 +63,7 @@ open class UserStorageBaseTests: XCTestCase {
         
         queue1.async {
             for _ in 0..<1000 {
-                storage.setUser(user, for: user.userId)
+                storage.upsertUser(user)
             }
             expectation.fulfill()
         }
@@ -87,7 +87,7 @@ open class UserStorageBaseTests: XCTestCase {
         for i in 0..<10 {
             DispatchQueue.global().async {
                 let user = SBUser(userId: "\(i)")
-                storage.setUser(user, for: user.userId)
+                storage.upsertUser(user)
                 expectation.fulfill()
             }
         }
@@ -99,7 +99,7 @@ open class UserStorageBaseTests: XCTestCase {
         let storage = self.userStorageType().init()
         
         let user = SBUser(userId: "1")
-        storage.setUser(user, for: user.userId)
+        storage.upsertUser(user)
         
         let expectation = self.expectation(description: "Concurrent reads")
         expectation.expectedFulfillmentCount = 10
@@ -123,7 +123,7 @@ open class UserStorageBaseTests: XCTestCase {
         for i in 0..<10 {
             DispatchQueue.global().async {
                 let user = SBUser(userId: "\(i)")
-                storage.setUser(user, for: user.userId)
+                storage.upsertUser(user)
                 expectation.fulfill()
             }
             
@@ -143,7 +143,7 @@ open class UserStorageBaseTests: XCTestCase {
         
         measure {
             for _ in 0..<1_000 {
-                storage.setUser(user, for: user.userId)
+                storage.upsertUser(user)
             }
         }
     }
@@ -152,7 +152,7 @@ open class UserStorageBaseTests: XCTestCase {
         let storage = self.userStorageType().init()
         
         let user = SBUser(userId: "1")
-        storage.setUser(user, for: user.userId)
+        storage.upsertUser(user)
         
         measure {
             for _ in 0..<1_000 {
@@ -166,7 +166,7 @@ open class UserStorageBaseTests: XCTestCase {
         
         for i in 0..<1_000 {
             let user = SBUser(userId: "\(i)")
-            storage.setUser(user, for: user.userId)
+            storage.upsertUser(user)
         }
         
         measure {
@@ -181,7 +181,7 @@ open class UserStorageBaseTests: XCTestCase {
         let user = SBUser(userId: "1")
         
         for _ in 0..<10_000 {
-            storage.setUser(user, for: user.userId)
+            storage.upsertUser(user)
             _ = storage.getUser(for: user.userId)
         }
     }
@@ -196,7 +196,7 @@ open class UserStorageBaseTests: XCTestCase {
             let user = SBUser(userId: "\(i)")
             
             DispatchQueue.global().async {
-                storage.setUser(user, for: user.userId)
+                storage.upsertUser(user)
                 expectation.fulfill()
             }
             
@@ -226,7 +226,7 @@ open class UserStorageBaseTests: XCTestCase {
         
         for user in users {
             DispatchQueue.global().async {
-                storage.setUser(user, for: user.userId)
+                storage.upsertUser(user)
                 setExpectation.fulfill()
             }
         }
@@ -240,7 +240,7 @@ open class UserStorageBaseTests: XCTestCase {
             XCTAssertEqual(users.count, retrievedUsers.count)
             
             for user in users {
-                XCTAssertTrue(retrievedUsers.contains(where: { $0.userId == user.userId && $0.nickname == user.nickname }) ?? false)
+                XCTAssertTrue(retrievedUsers.contains(where: { $0.userId == user.userId && $0.nickname == user.nickname }) )
             }
         }
     }
