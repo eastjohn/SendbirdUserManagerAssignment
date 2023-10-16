@@ -9,6 +9,10 @@ import Foundation
 import SendbirdUserManager
 
 class MockUserManager: SBUserManager {
+    func updateUser(params: SendbirdUserManager.UserUpdateParams, completionHandler: ((SendbirdUserManager.UserResult) -> Void)?) {
+        <#code#>
+    }
+    
     static let shared = MockUserManager()
     
     var networkClient: SBNetworkClient
@@ -34,7 +38,7 @@ class MockUserManager: SBUserManager {
     
     func createUser(params: UserCreationParams, completionHandler: ((UserResult) -> Void)?) {
         let user = SBUser(userId: params.userId, nickname: params.nickname, profileURL: params.profileURL)
-        userStorage.setUser(user, for: user.userId)
+        userStorage.upsertUser(user)
         completionHandler?(.success(user))
 //
 //        // Define the request
@@ -59,7 +63,7 @@ class MockUserManager: SBUserManager {
             return
         }
         let users = params.map { SBUser(userId: $0.userId, nickname: $0.nickname, profileURL: $0.profileURL) }
-        users.forEach { userStorage.setUser($0, for: $0.userId) }
+        users.forEach { userStorage.upsertUser($0) }
         completionHandler?(.success(users))
         
 //        // For simplicity, let's assume you can send multiple users in one request
@@ -82,7 +86,7 @@ class MockUserManager: SBUserManager {
     
     func updateUser(userId: String, params: UserUpdateParams, completionHandler: ((UserResult) -> Void)?) {
         let user = SBUser(userId: userId, nickname: params.nickname, profileURL: params.profileURL)
-        userStorage.setUser(user, for: user.userId)
+        userStorage.upsertUser(user)
         completionHandler?(.success(user))
 //
 //        let request = Request(method: .patch, path: "/updateUser/\(userId)", body: params)

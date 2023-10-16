@@ -35,7 +35,7 @@ public protocol SBUserManager {
     func createUser(params: UserCreationParams, completionHandler: ((UserResult) -> Void)?)
     
     /// UserCreationParams List를 사용하여 새로운 유저들을 생성합니다.
-    /// 생성할 수 있는 사용자의 최대 수는 10명로 제한해야 합니다
+    /// 한 번에 생성할 수 있는 사용자의 최대 수는 10명로 제한해야 합니다
     /// Profile URL은 임의의 image URL을 사용하시면 됩니다
     /// 생성 요청이 성공한 뒤에 userStorage를 통해 캐시에 추가되어야 합니다
     /// - Parameters:
@@ -43,9 +43,9 @@ public protocol SBUserManager {
     ///    - completionHandler: 생성이 완료된 뒤, user객체와 에러 여부를 담은 completion Handler
     func createUsers(params: [UserCreationParams], completionHandler: ((UsersResult) -> Void)?)
     
-    /// 특정 User의 nickname을 업데이트합니다
+    /// 특정 User의 nickname 또는 profileURL을 업데이트합니다
     /// 업데이트 요청이 성공한 뒤에 캐시에 upsert 되어야 합니다 
-    func updateUser(userId: String, params: UserUpdateParams, completionHandler: ((UserResult) -> Void)?)
+    func updateUser(params: UserUpdateParams, completionHandler: ((UserResult) -> Void)?)
     
     /// userId를 통해 특정 User의 정보를 가져옵니다
     /// 캐시에 해당 User가 있으면 캐시된 User를 반환합니다

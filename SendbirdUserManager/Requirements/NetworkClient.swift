@@ -20,7 +20,3 @@ public protocol SBNetworkClient {
         completionHandler: @escaping (Result<R.Response, Error>) -> Void
     )
 }
-
-public protocol SBNetworkClientTestable: SBNetworkClient {
-     
-}
