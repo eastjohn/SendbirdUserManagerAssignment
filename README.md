@@ -1,3 +1,6 @@
+# How to use this repository
+This document is a project to measure the programming skills of interview candidates in the Client iOS team. Please refer to the explanation below for the background of the assignment. Through this project, candidates will receive assignments. 
+**Running `build_assignment.sh` in the parent directory creates a `zip` file for assignment to pass to a candidate.**
 # Objective
 Leverage the Sendbird platform API to construct an SDK that effectively manages user data
 # Assignment Document
