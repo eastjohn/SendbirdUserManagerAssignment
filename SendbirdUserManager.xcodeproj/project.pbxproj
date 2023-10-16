@@ -114,8 +114,8 @@
 			isa = PBXGroup;
 			children = (
 				52347BF62ADA63FB00AC2D94 /* Models.swift */,
-				52347BF72ADA63FB00AC2D94 /* NetworkClient.swift */,
 				52347BF52ADA63FB00AC2D94 /* UserManager.swift */,
+				52347BF72ADA63FB00AC2D94 /* NetworkClient.swift */,
 				52347BF82ADA63FB00AC2D94 /* UserStorage.swift */,
 			);
 			path = Requirements;

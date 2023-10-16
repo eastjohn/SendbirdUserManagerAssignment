@@ -20,11 +20,12 @@ public struct UserCreationParams {
 
 /// User를 update할때 사용되는 parameter입니다.
 /// - Parameters:
+///   - userId: 업데이트할 User의 ID
 ///   - nickname: 새로운 nickname
 ///   - profileURL: 새로운 image url
 public struct UserUpdateParams {
-    public let nickname: String
-
+    public let userId: String
+    public let nickname: String?
     public let profileURL: String?
 }
 
