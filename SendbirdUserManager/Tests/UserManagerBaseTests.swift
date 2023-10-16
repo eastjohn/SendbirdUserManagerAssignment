@@ -79,14 +79,14 @@ open class UserManagerBaseTests: XCTestCase {
         let userManager = userManagerType().init()
 
         let initialParams = UserCreationParams(userId: "1", nickname: "InitialName", profileURL: nil)
-        let updatedParams = UserUpdateParams(nickname: "UpdatedName", profileURL: nil)
+        let updatedParams = UserUpdateParams(userId: "hello", nickname: "UpdatedName", profileURL: nil)
         
         let expectation = self.expectation(description: "Wait for user update")
         
         userManager.createUser(params: initialParams) { creationResult in
             switch creationResult {
-            case .success(let user):
-                userManager.updateUser(userId: user.userId, params: updatedParams) { updateResult in
+            case .success(_):
+                userManager.updateUser(params: updatedParams) { updateResult in
                     switch updateResult {
                     case .success(let updatedUser):
                         XCTAssertEqual(updatedUser.nickname, "UpdatedName")
@@ -189,7 +189,7 @@ open class UserManagerBaseTests: XCTestCase {
         let userManager = userManagerType().init()
 
         let initialParams = UserCreationParams(userId: "1", nickname: "InitialName", profileURL: nil)
-        let updatedParams = UserUpdateParams(nickname: "UpdatedName", profileURL: nil)
+        let updatedParams = UserUpdateParams(userId: "hello", nickname: "UpdatedName", profileURL: nil)
         
         let expectation1 = self.expectation(description: "Wait for user update")
         let expectation2 = self.expectation(description: "Wait for user retrieval")
@@ -201,7 +201,7 @@ open class UserManagerBaseTests: XCTestCase {
             }
             
             DispatchQueue.global().async {
-                userManager.updateUser(userId: createdUser.userId, params: updatedParams) { _ in
+                userManager.updateUser(params: updatedParams) { _ in
                     expectation1.fulfill()
                 }
             }
@@ -315,7 +315,7 @@ open class UserManagerBaseTests: XCTestCase {
             return false
         }
         let rateLimitResults = results.filter {
-            if case .failure(let error) = $0 { return true }
+            if case .failure(_) = $0 { return true }
             return false
         }
 
@@ -348,7 +348,7 @@ open class UserManagerBaseTests: XCTestCase {
             return false
         }
         let rateLimitResults = results.filter {
-            if case .failure(let error) = $0 { return true }
+            if case .failure(_) = $0 { return true }
             return false
         }
 
@@ -359,15 +359,15 @@ open class UserManagerBaseTests: XCTestCase {
     public func testRateLimitUpdateUser() {
         let userManager = userManagerType().init()
         
-        let updateParams = UserUpdateParams(nickname: "NewNick", profileURL: nil)
+        let updateParams = UserUpdateParams(userId: "hello", nickname: "NewNick", profileURL: nil)
 
         // Concurrently update 11 users
         let dispatchGroup = DispatchGroup()
         var results: [UserResult] = []
 
-        for i in 0..<11 {
+        for _ in 0..<11 {
             dispatchGroup.enter()
-            userManager.updateUser(userId: "user\(i)", params: updateParams) { result in
+            userManager.updateUser(params: updateParams) { result in
                 results.append(result)
                 dispatchGroup.leave()
             }
@@ -381,7 +381,7 @@ open class UserManagerBaseTests: XCTestCase {
             return false
         }
         let rateLimitResults = results.filter {
-            if case .failure(let error) = $0 { return true }
+            if case .failure(_) = $0 { return true }
             return false
         }
 
