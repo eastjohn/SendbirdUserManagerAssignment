@@ -19,7 +19,6 @@
 		52CD18602ADBA9D40097F9E1 /* MockUserManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52CD185F2ADBA9D40097F9E1 /* MockUserManager.swift */; };
 		52CD18622ADBA9DA0097F9E1 /* MockNetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52CD18612ADBA9DA0097F9E1 /* MockNetworkClient.swift */; };
 		52CD18642ADBA9E10097F9E1 /* MockUserStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52CD18632ADBA9E10097F9E1 /* MockUserStorage.swift */; };
-		52CD18662ADBAA300097F9E1 /* NetworkClientBaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52CD18652ADBAA300097F9E1 /* NetworkClientBaseTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,7 +46,6 @@
 		52CD185F2ADBA9D40097F9E1 /* MockUserManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockUserManager.swift; sourceTree = "<group>"; };
 		52CD18612ADBA9DA0097F9E1 /* MockNetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockNetworkClient.swift; sourceTree = "<group>"; };
 		52CD18632ADBA9E10097F9E1 /* MockUserStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockUserStorage.swift; sourceTree = "<group>"; };
-		52CD18652ADBAA300097F9E1 /* NetworkClientBaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkClientBaseTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,10 +99,7 @@
 		52347BE92ADA63F200AC2D94 /* SendbirdUserManagerTests */ = {
 			isa = PBXGroup;
 			children = (
-				52347C062ADA654B00AC2D94 /* Errors.swift */,
-				52CD18612ADBA9DA0097F9E1 /* MockNetworkClient.swift */,
-				52CD185F2ADBA9D40097F9E1 /* MockUserManager.swift */,
-				52CD18632ADBA9E10097F9E1 /* MockUserStorage.swift */,
+				52CD18672ADCDC5C0097F9E1 /* Mocks */,
 				52347BEA2ADA63F200AC2D94 /* SendbirdUserManagerTests.swift */,
 			);
 			path = SendbirdUserManagerTests;
@@ -125,7 +120,6 @@
 			isa = PBXGroup;
 			children = (
 				52347C082ADA6C3500AC2D94 /* UserStorageBaseTests.swift */,
-				52CD18652ADBAA300097F9E1 /* NetworkClientBaseTests.swift */,
 				52CD185D2ADACE5E0097F9E1 /* UserManagerBaseTests.swift */,
 			);
 			path = Tests;
@@ -136,6 +130,17 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		52CD18672ADCDC5C0097F9E1 /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				52347C062ADA654B00AC2D94 /* Errors.swift */,
+				52CD18612ADBA9DA0097F9E1 /* MockNetworkClient.swift */,
+				52CD185F2ADBA9D40097F9E1 /* MockUserManager.swift */,
+				52CD18632ADBA9E10097F9E1 /* MockUserStorage.swift */,
+			);
+			path = Mocks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -253,7 +258,6 @@
 				52347BF92ADA63FB00AC2D94 /* Models.swift in Sources */,
 				52CD185E2ADACE5E0097F9E1 /* UserManagerBaseTests.swift in Sources */,
 				52347BFA2ADA63FB00AC2D94 /* NetworkClient.swift in Sources */,
-				52CD18662ADBAA300097F9E1 /* NetworkClientBaseTests.swift in Sources */,
 				52347BFC2ADA63FB00AC2D94 /* UserManager.swift in Sources */,
 				52347C092ADA6C3500AC2D94 /* UserStorageBaseTests.swift in Sources */,
 				52347BFB2ADA63FB00AC2D94 /* UserStorage.swift in Sources */,
