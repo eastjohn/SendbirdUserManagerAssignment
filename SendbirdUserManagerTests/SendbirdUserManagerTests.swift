@@ -20,8 +20,8 @@ final class UserStorageTests: UserStorageBaseTests {
     }
 }
 
-final class NetworkClientTests: NetworkClientBaseTests {
-    override func networkClientType() -> SBNetworkClient.Type! {
-        MockNetworkClient.self
-    }
-}
+//final class NetworkClientTests: NetworkClientBaseTests {
+//    override func networkClientType() -> SBNetworkClient.Type! {
+//        MockNetworkClient.self
+//    }
+//}

@@ -21,7 +21,9 @@ open class UserManagerBaseTests: XCTestCase {
         
         // First init
         userManager.initApplication(applicationId: "AppID1", apiToken: "Token1")
-        let initialUser = UserCreationParams(userId: "1", nickname: "Initial", profileURL: nil)
+        
+        let userId = UUID().uuidString
+        let initialUser = UserCreationParams(userId: userId, nickname: "Initial", profileURL: nil)
         userManager.createUser(params: initialUser) { _ in }
         
         // Second init with a different App ID
@@ -34,8 +36,9 @@ open class UserManagerBaseTests: XCTestCase {
     
     public func testCreateUser() {
         let userManager = userManagerType().init()
-
-        let params = UserCreationParams(userId: "1", nickname: "John Doe", profileURL: nil)
+        
+        let userId = UUID().uuidString
+        let params = UserCreationParams(userId: userId, nickname: "John Doe", profileURL: nil)
         let expectation = self.expectation(description: "Wait for user creation")
         
         userManager.createUser(params: params) { result in
@@ -55,8 +58,10 @@ open class UserManagerBaseTests: XCTestCase {
     public func testCreateUsers() {
         let userManager = userManagerType().init()
 
-        let params1 = UserCreationParams(userId: "1", nickname: "John", profileURL: nil)
-        let params2 = UserCreationParams(userId: "2", nickname: "Jane", profileURL: nil)
+        let userId1 = UUID().uuidString
+        let userId2 = UUID().uuidString
+        let params1 = UserCreationParams(userId: userId1, nickname: "John", profileURL: nil)
+        let params2 = UserCreationParams(userId: userId2, nickname: "Jane", profileURL: nil)
         
         let expectation = self.expectation(description: "Wait for users creation")
     
@@ -78,8 +83,9 @@ open class UserManagerBaseTests: XCTestCase {
     public func testUpdateUser() {
         let userManager = userManagerType().init()
 
-        let initialParams = UserCreationParams(userId: "1", nickname: "InitialName", profileURL: nil)
-        let updatedParams = UserUpdateParams(userId: "hello", nickname: "UpdatedName", profileURL: nil)
+        let userId = UUID().uuidString
+        let initialParams = UserCreationParams(userId: userId, nickname: "InitialName", profileURL: nil)
+        let updatedParams = UserUpdateParams(userId: userId, nickname: "UpdatedName", profileURL: nil)
         
         let expectation = self.expectation(description: "Wait for user update")
         
@@ -107,7 +113,8 @@ open class UserManagerBaseTests: XCTestCase {
     public func testGetUser() {
         let userManager = userManagerType().init()
 
-        let params = UserCreationParams(userId: "1", nickname: "John", profileURL: nil)
+        let userId = UUID().uuidString
+        let params = UserCreationParams(userId: userId, nickname: "John", profileURL: nil)
         
         let expectation = self.expectation(description: "Wait for user retrieval")
         
@@ -135,8 +142,10 @@ open class UserManagerBaseTests: XCTestCase {
     public func testGetUsersWithNicknameFilter() {
         let userManager = userManagerType().init()
 
-        let params1 = UserCreationParams(userId: "1", nickname: "John", profileURL: nil)
-        let params2 = UserCreationParams(userId: "2", nickname: "Jane", profileURL: nil)
+        let userId1 = UUID().uuidString
+        let userId2 = UUID().uuidString
+        let params1 = UserCreationParams(userId: userId1, nickname: "John", profileURL: nil)
+        let params2 = UserCreationParams(userId: userId2, nickname: "Jane", profileURL: nil)
         
         let expectation = self.expectation(description: "Wait for users retrieval with nickname filter")
         
@@ -166,7 +175,7 @@ open class UserManagerBaseTests: XCTestCase {
     public func testCreateUsersLimit() {
         let userManager = userManagerType().init()
 
-        let users = (0..<11).map { UserCreationParams(userId: "\($0)", nickname: "User\($0)", profileURL: nil) }
+        let users = (0..<11).map { UserCreationParams(userId: "\(UUID().uuidString)\($0)", nickname: "User\($0)", profileURL: nil) }
         
         let expectation = self.expectation(description: "Wait for users creation with limit")
         
@@ -188,8 +197,9 @@ open class UserManagerBaseTests: XCTestCase {
     public func testUpdateUserRaceCondition() {
         let userManager = userManagerType().init()
 
-        let initialParams = UserCreationParams(userId: "1", nickname: "InitialName", profileURL: nil)
-        let updatedParams = UserUpdateParams(userId: "hello", nickname: "UpdatedName", profileURL: nil)
+        let userId = UUID().uuidString
+        let initialParams = UserCreationParams(userId: userId, nickname: "InitialName", profileURL: nil)
+        let updatedParams = UserUpdateParams(userId: userId, nickname: "UpdatedName", profileURL: nil)
         
         let expectation1 = self.expectation(description: "Wait for user update")
         let expectation2 = self.expectation(description: "Wait for user retrieval")
@@ -226,6 +236,7 @@ open class UserManagerBaseTests: XCTestCase {
         let userManager = userManagerType().init()
 
         let expectation = self.expectation(description: "Detect potential deadlocks when fetching users")
+        expectation.expectedFulfillmentCount = 2
 
         DispatchQueue.global().async {
             userManager.getUsers(nicknameMatches: "John") { _ in
@@ -235,7 +246,7 @@ open class UserManagerBaseTests: XCTestCase {
 
         DispatchQueue.global().async {
             userManager.getUsers(nicknameMatches: "Jane") { _ in
-                // nothing to do here
+                expectation.fulfill()
             }
         }
 
@@ -297,7 +308,7 @@ open class UserManagerBaseTests: XCTestCase {
         // Concurrently create 11 users
         let dispatchGroup = DispatchGroup()
         var results: [UserResult] = []
-        let params = UserCreationParams(userId: "JohnDoe", nickname: "JohnDoe", profileURL: nil)
+        let params = UserCreationParams(userId: UUID().uuidString, nickname: "JohnDoe", profileURL: nil)
 
         for _ in 0..<11 {
             dispatchGroup.enter()
@@ -326,7 +337,7 @@ open class UserManagerBaseTests: XCTestCase {
     public func testRateLimitCreateUsers() {
         let userManager = userManagerType().init()
 
-        let paramsArray = [UserCreationParams(userId: "JohnDoe", nickname: "JohnDoe", profileURL: nil), UserCreationParams(userId: "JaneDoe", nickname: "JaneDoe", profileURL: nil)]
+        let paramsArray = [UserCreationParams(userId: UUID().uuidString, nickname: "JohnDoe", profileURL: nil), UserCreationParams(userId: UUID().uuidString, nickname: "JaneDoe", profileURL: nil)]
 
         // Concurrently create 6 batches of users (to exceed the limit with 12 requests)
         let dispatchGroup = DispatchGroup()
@@ -359,7 +370,7 @@ open class UserManagerBaseTests: XCTestCase {
     public func testRateLimitUpdateUser() {
         let userManager = userManagerType().init()
         
-        let updateParams = UserUpdateParams(userId: "hello", nickname: "NewNick", profileURL: nil)
+        let updateParams = UserUpdateParams(userId: "user", nickname: "NewNick", profileURL: nil)
 
         // Concurrently update 11 users
         let dispatchGroup = DispatchGroup()

@@ -9,10 +9,6 @@ import Foundation
 import SendbirdUserManager
 
 class MockUserManager: SBUserManager {
-    func updateUser(params: SendbirdUserManager.UserUpdateParams, completionHandler: ((SendbirdUserManager.UserResult) -> Void)?) {
-        <#code#>
-    }
-    
     static let shared = MockUserManager()
     
     var networkClient: SBNetworkClient
@@ -84,8 +80,8 @@ class MockUserManager: SBUserManager {
 //        }
     }
     
-    func updateUser(userId: String, params: UserUpdateParams, completionHandler: ((UserResult) -> Void)?) {
-        let user = SBUser(userId: userId, nickname: params.nickname, profileURL: params.profileURL)
+    func updateUser(params: SendbirdUserManager.UserUpdateParams, completionHandler: ((SendbirdUserManager.UserResult) -> Void)?) {
+        let user = SBUser(userId: params.userId, nickname: params.nickname, profileURL: params.profileURL)
         userStorage.upsertUser(user)
         completionHandler?(.success(user))
 //
@@ -102,6 +98,7 @@ class MockUserManager: SBUserManager {
 //                completionHandler(.failure(error))
 //            }
 //        }
+
     }
     
     func getUser(userId: String, completionHandler: ((UserResult) -> Void)?) {
