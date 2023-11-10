@@ -39,5 +39,15 @@ class MockUserStorage: SBUserStorage {
         
         return user
     }
+    
+    func upsertUser(_ user: SendbirdUserManager.SBUser) {
+        queue.sync {
+            self.cache[user.userId] = user
+        }
+    }
+    
+    func getUsers(for nickname: String) -> [SendbirdUserManager.SBUser] {
+        return self.cache.values.filter { $0.nickname?.contains(nickname) == true }
+    }
 }
 
