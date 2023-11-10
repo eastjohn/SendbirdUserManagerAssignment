@@ -3,7 +3,7 @@ set -e
 rm SendbirdUserManagerAssignment.zip || true
 git restore .
 
-rm -rf SendbirdUserManagerTests/Mocks || true
+rm -rf Tests/SendbirdUserManagerTests/Mocks || true
 rm build_assignment.sh
 rm README.md
 
