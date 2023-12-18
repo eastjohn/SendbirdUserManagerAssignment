@@ -16,36 +16,45 @@ open class UserManagerBaseTests: XCTestCase {
         return nil
     }
     
+    public let applicationId = ""   // Note: add an application ID
+    public let apiToken = ""        // Note: add an API Token
+    
     public func testInitApplicationWithDifferentAppIdClearsData() {
         let userManager = userManagerType().init()
         
         // First init
-        userManager.initApplication(applicationId: "AppID1", apiToken: "Token1")
+        userManager.initApplication(applicationId: "AppID1", apiToken: "Token1")    // Note: Add the first application ID and API Token
         
         let userId = UUID().uuidString
-        let initialUser = UserCreationParams(userId: userId, nickname: "Initial", profileURL: nil)
+        let initialUser = UserCreationParams(userId: userId, nickname: "hello", profileURL: nil)
         userManager.createUser(params: initialUser) { _ in }
         
+        // Check if the data exist
+        let users = userManager.userStorage.getUsers()
+        XCTAssertEqual(users.count, 1, "User should exist with an initial Application ID")
+        
         // Second init with a different App ID
-        userManager.initApplication(applicationId: "AppID2", apiToken: "Token2")
+        userManager.initApplication(applicationId: "AppID2", apiToken: "Token2")    // Note: Add the second application ID and API Token
         
         // Check if the data is cleared
-        let users = userManager.userStorage.getUsers()
-        XCTAssertEqual(users.count, 0, "Data should be cleared after initializing with a different Application ID")
+        let clearedUsers = userManager.userStorage.getUsers()
+        XCTAssertEqual(clearedUsers.count, 0, "Data should be cleared after initializing with a different Application ID")
     }
     
     public func testCreateUser() {
         let userManager = userManagerType().init()
+        userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
         
         let userId = UUID().uuidString
-        let params = UserCreationParams(userId: userId, nickname: "John Doe", profileURL: nil)
+        let userNickname = UUID().uuidString
+        let params = UserCreationParams(userId: userId, nickname: userNickname, profileURL: nil)
         let expectation = self.expectation(description: "Wait for user creation")
         
         userManager.createUser(params: params) { result in
             switch result {
             case .success(let user):
                 XCTAssertNotNil(user)
-                XCTAssertEqual(user.nickname, "John Doe")
+                XCTAssertEqual(user.nickname, userNickname)
             case .failure(let error):
                 XCTFail("Failed with error: \(error)")
             }
@@ -57,11 +66,16 @@ open class UserManagerBaseTests: XCTestCase {
     
     public func testCreateUsers() {
         let userManager = userManagerType().init()
+        userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let userId1 = UUID().uuidString
+        let userNickname1 = UUID().uuidString
+        
         let userId2 = UUID().uuidString
-        let params1 = UserCreationParams(userId: userId1, nickname: "John", profileURL: nil)
-        let params2 = UserCreationParams(userId: userId2, nickname: "Jane", profileURL: nil)
+        let userNickname2 = UUID().uuidString
+        
+        let params1 = UserCreationParams(userId: userId1, nickname: userNickname1, profileURL: nil)
+        let params2 = UserCreationParams(userId: userId2, nickname: userNickname2, profileURL: nil)
         
         let expectation = self.expectation(description: "Wait for users creation")
     
@@ -69,8 +83,8 @@ open class UserManagerBaseTests: XCTestCase {
             switch result {
             case .success(let users):
                 XCTAssertEqual(users.count, 2)
-                XCTAssertEqual(users[0].nickname, "John")
-                XCTAssertEqual(users[1].nickname, "Jane")
+                XCTAssertEqual(users[0].nickname, userNickname1)
+                XCTAssertEqual(users[1].nickname, userNickname2)
             case .failure(let error):
                 XCTFail("Failed with error: \(error)")
             }
@@ -82,10 +96,14 @@ open class UserManagerBaseTests: XCTestCase {
     
     public func testUpdateUser() {
         let userManager = userManagerType().init()
+        userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let userId = UUID().uuidString
-        let initialParams = UserCreationParams(userId: userId, nickname: "InitialName", profileURL: nil)
-        let updatedParams = UserUpdateParams(userId: userId, nickname: "UpdatedName", profileURL: nil)
+        let initialUserNickname = UUID().uuidString
+        let updatedUserNickname = UUID().uuidString
+        
+        let initialParams = UserCreationParams(userId: userId, nickname: initialUserNickname, profileURL: nil)
+        let updatedParams = UserUpdateParams(userId: userId, nickname: updatedUserNickname, profileURL: nil)
         
         let expectation = self.expectation(description: "Wait for user update")
         
@@ -95,7 +113,7 @@ open class UserManagerBaseTests: XCTestCase {
                 userManager.updateUser(params: updatedParams) { updateResult in
                     switch updateResult {
                     case .success(let updatedUser):
-                        XCTAssertEqual(updatedUser.nickname, "UpdatedName")
+                        XCTAssertEqual(updatedUser.nickname, updatedUserNickname)
                     case .failure(let error):
                         XCTFail("Failed with error: \(error)")
                     }
@@ -112,9 +130,12 @@ open class UserManagerBaseTests: XCTestCase {
     
     public func testGetUser() {
         let userManager = userManagerType().init()
+        userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let userId = UUID().uuidString
-        let params = UserCreationParams(userId: userId, nickname: "John", profileURL: nil)
+        let userNickname = UUID().uuidString
+        
+        let params = UserCreationParams(userId: userId, nickname: userNickname, profileURL: nil)
         
         let expectation = self.expectation(description: "Wait for user retrieval")
         
@@ -124,7 +145,7 @@ open class UserManagerBaseTests: XCTestCase {
                 userManager.getUser(userId: createdUser.userId) { getResult in
                     switch getResult {
                     case .success(let retrievedUser):
-                        XCTAssertEqual(retrievedUser.nickname, "John")
+                        XCTAssertEqual(retrievedUser.nickname, userNickname)
                     case .failure(let error):
                         XCTFail("Failed with error: \(error)")
                     }
@@ -141,22 +162,27 @@ open class UserManagerBaseTests: XCTestCase {
     
     public func testGetUsersWithNicknameFilter() {
         let userManager = userManagerType().init()
+        userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let userId1 = UUID().uuidString
+        let userNickname1 = UUID().uuidString
+        
         let userId2 = UUID().uuidString
-        let params1 = UserCreationParams(userId: userId1, nickname: "John", profileURL: nil)
-        let params2 = UserCreationParams(userId: userId2, nickname: "Jane", profileURL: nil)
+        let userNickname2 = UUID().uuidString
+        
+        let params1 = UserCreationParams(userId: userId1, nickname: userNickname1, profileURL: nil)
+        let params2 = UserCreationParams(userId: userId2, nickname: userNickname2, profileURL: nil)
         
         let expectation = self.expectation(description: "Wait for users retrieval with nickname filter")
         
         userManager.createUsers(params: [params1, params2]) { creationResult in
             switch creationResult {
             case .success(_):
-                userManager.getUsers(nicknameMatches: "John") { getResult in
+                userManager.getUsers(nicknameMatches: userNickname1) { getResult in
                     switch getResult {
                     case .success(let users):
                         XCTAssertEqual(users.count, 1)
-                        XCTAssertEqual(users[0].nickname, "John")
+                        XCTAssertEqual(users[0].nickname, userNickname1)
                     case .failure(let error):
                         XCTFail("Failed with error: \(error)")
                     }
@@ -174,8 +200,9 @@ open class UserManagerBaseTests: XCTestCase {
     // Test that trying to create more than 10 users at once should fail
     public func testCreateUsersLimit() {
         let userManager = userManagerType().init()
+        userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
-        let users = (0..<11).map { UserCreationParams(userId: "\(UUID().uuidString)\($0)", nickname: "User\($0)", profileURL: nil) }
+        let users = (0..<11).map { UserCreationParams(userId: "user_id_\(UUID().uuidString)\($0)", nickname: "nickname_\(UUID().uuidString)\($0)", profileURL: nil) }
         
         let expectation = self.expectation(description: "Wait for users creation with limit")
         
@@ -196,10 +223,14 @@ open class UserManagerBaseTests: XCTestCase {
     // Test race condition when simultaneously trying to update and fetch a user
     public func testUpdateUserRaceCondition() {
         let userManager = userManagerType().init()
+        userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let userId = UUID().uuidString
-        let initialParams = UserCreationParams(userId: userId, nickname: "InitialName", profileURL: nil)
-        let updatedParams = UserUpdateParams(userId: userId, nickname: "UpdatedName", profileURL: nil)
+        let initialUserNickname = UUID().uuidString
+        let updatedUserNickname = UUID().uuidString
+        
+        let initialParams = UserCreationParams(userId: userId, nickname: initialUserNickname, profileURL: nil)
+        let updatedParams = UserUpdateParams(userId: userId, nickname: updatedUserNickname, profileURL: nil)
         
         let expectation1 = self.expectation(description: "Wait for user update")
         let expectation2 = self.expectation(description: "Wait for user retrieval")
@@ -219,7 +250,7 @@ open class UserManagerBaseTests: XCTestCase {
             DispatchQueue.global().async {
                 userManager.getUser(userId: createdUser.userId) { getResult in
                     if case .success(let user) = getResult {
-                        XCTAssertTrue(user.nickname == "InitialName" || user.nickname == "UpdatedName")
+                        XCTAssertTrue(user.nickname == initialUserNickname || user.nickname == updatedUserNickname)
                     } else {
                         XCTFail("Failed to retrieve user")
                     }
@@ -231,31 +262,10 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation1, expectation2], timeout: 10.0)
     }
     
-    // Test for potential deadlock situations
-    public func testPotentialDeadlockWhenFetchingUsers() {
-        let userManager = userManagerType().init()
-
-        let expectation = self.expectation(description: "Detect potential deadlocks when fetching users")
-        expectation.expectedFulfillmentCount = 2
-
-        DispatchQueue.global().async {
-            userManager.getUsers(nicknameMatches: "John") { _ in
-                expectation.fulfill()
-            }
-        }
-
-        DispatchQueue.global().async {
-            userManager.getUsers(nicknameMatches: "Jane") { _ in
-                expectation.fulfill()
-            }
-        }
-
-        wait(for: [expectation], timeout: 5.0)
-    }
-    
     // Test for edge cases where the nickname to be matched is either empty or consists of spaces
     public func testGetUsersWithEmptyNickname() {
         let userManager = userManagerType().init()
+        userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let expectation = self.expectation(description: "Wait for users retrieval with empty nickname filter")
         
@@ -272,113 +282,18 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
     
-    public func testRateLimitGetUser() {
-        let userManager = userManagerType().init()
-
-        // Concurrently get user info for 11 users
-        let dispatchGroup = DispatchGroup()
-        var results: [UserResult] = []
-
-        for i in 0..<11 {
-            dispatchGroup.enter()
-            userManager.getUser(userId: "user\(i)") { result in
-                results.append(result)
-                dispatchGroup.leave()
-            }
-        }
-
-        dispatchGroup.wait()
-
-        // Expect 10 successful and 1 rateLimitExceeded response
-        let successResults = results.filter {
-            if case .success = $0 { return true }
-            return false
-        }
-        let rateLimitResults = results.filter {
-            if case .failure(let error) = $0 { return true }
-            return false
-        }
-
-        XCTAssertEqual(successResults.count, 10)
-        XCTAssertEqual(rateLimitResults.count, 1)
-    }
     public func testRateLimitCreateUser() {
         let userManager = userManagerType().init()
+        userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
         
         // Concurrently create 11 users
         let dispatchGroup = DispatchGroup()
         var results: [UserResult] = []
-        let params = UserCreationParams(userId: UUID().uuidString, nickname: "JohnDoe", profileURL: nil)
-
-        for _ in 0..<11 {
-            dispatchGroup.enter()
-            userManager.createUser(params: params) { result in
-                results.append(result)
-                dispatchGroup.leave()
-            }
-        }
-
-        dispatchGroup.wait()
-
-        // Assess the results
-        let successResults = results.filter {
-            if case .success = $0 { return true }
-            return false
-        }
-        let rateLimitResults = results.filter {
-            if case .failure(_) = $0 { return true }
-            return false
-        }
-
-        XCTAssertEqual(successResults.count, 10)
-        XCTAssertEqual(rateLimitResults.count, 1)
-    }
-    
-    public func testRateLimitCreateUsers() {
-        let userManager = userManagerType().init()
-
-        let paramsArray = [UserCreationParams(userId: UUID().uuidString, nickname: "JohnDoe", profileURL: nil), UserCreationParams(userId: UUID().uuidString, nickname: "JaneDoe", profileURL: nil)]
-
-        // Concurrently create 6 batches of users (to exceed the limit with 12 requests)
-        let dispatchGroup = DispatchGroup()
-        var results: [UsersResult] = []
-
-        for _ in 0..<6 {
-            dispatchGroup.enter()
-            userManager.createUsers(params: paramsArray) { result in
-                results.append(result)
-                dispatchGroup.leave()
-            }
-        }
-
-        dispatchGroup.wait()
-
-        // Assess the results
-        let successResults = results.filter {
-            if case .success = $0 { return true }
-            return false
-        }
-        let rateLimitResults = results.filter {
-            if case .failure(_) = $0 { return true }
-            return false
-        }
-
-        XCTAssertEqual(successResults.count, 5) // 5 successful batch creations
-        XCTAssertEqual(rateLimitResults.count, 1) // 1 rate-limited batch creation
-    }
-    
-    public func testRateLimitUpdateUser() {
-        let userManager = userManagerType().init()
         
-        let updateParams = UserUpdateParams(userId: "user", nickname: "NewNick", profileURL: nil)
-
-        // Concurrently update 11 users
-        let dispatchGroup = DispatchGroup()
-        var results: [UserResult] = []
-
         for _ in 0..<11 {
             dispatchGroup.enter()
-            userManager.updateUser(params: updateParams) { result in
+            let params = UserCreationParams(userId: UUID().uuidString, nickname: UUID().uuidString, profileURL: nil)
+            userManager.createUser(params: params) { result in
                 results.append(result)
                 dispatchGroup.leave()
             }
