@@ -11,7 +11,6 @@ public typealias UserResult = Result<(SBUser), Error>
 public typealias UsersResult = Result<[SBUser], Error>
 
 /// Sendbird User Managent를 위한 SDK interface입니다.
-/// 사용될땐 SBUserManager.shared처럼 singleton으로 선언이 되어서 사용이 됩니다. 
 public protocol SBUserManager {
     init()
     
