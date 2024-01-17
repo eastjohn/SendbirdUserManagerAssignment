@@ -16,7 +16,7 @@ class MockUserManager: SBUserManager {
     
     private var currentAppId: String?
     
-    required init() {
+    init() {
         self.networkClient = MockNetworkClient()
         self.userStorage = MockUserStorage()
     }

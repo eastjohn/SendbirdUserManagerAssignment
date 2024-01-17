@@ -11,7 +11,7 @@ import SendbirdUserManager
 class MockNetworkClient: SBNetworkClient {
     var responses: [Any] = []
     
-    required init() {
+    init() {
         
     }
     

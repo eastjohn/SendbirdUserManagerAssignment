@@ -10,17 +10,15 @@ import XCTest
 
 /// Unit Testing을 위해 제공되는 base test suite입니다.
 /// 사용을 위해서는 해당 클래스를 상속받고,
-/// `open func userManagerType() -> SBUserManager.Type!`를 override한뒤, 본인이 구현한 SBUserManager의 타입을 반환하도록 합니다.
+/// `open func userManager() -> SBUserManager?`를 override한뒤, 본인이 구현한 SBUserManager의 인스턴스를 반환하도록 합니다.
 open class UserManagerBaseTests: XCTestCase {
-    open func userManagerType() -> SBUserManager.Type! {
-        return nil
-    }
+    open func userManager() -> SBUserManager? { nil }
     
     public let applicationId = ""   // Note: add an application ID
     public let apiToken = ""        // Note: add an API Token
     
-    public func testInitApplicationWithDifferentAppIdClearsData() {
-        let userManager = userManagerType().init()
+    public func testInitApplicationWithDifferentAppIdClearsData() throws {
+        let userManager = try XCTUnwrap(self.userManager())
         
         // First init
         userManager.initApplication(applicationId: "AppID1", apiToken: "Token1")    // Note: Add the first application ID and API Token
@@ -41,8 +39,8 @@ open class UserManagerBaseTests: XCTestCase {
         XCTAssertEqual(clearedUsers.count, 0, "Data should be cleared after initializing with a different Application ID")
     }
     
-    public func testCreateUser() {
-        let userManager = userManagerType().init()
+    public func testCreateUser() throws {
+        let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
         
         let userId = UUID().uuidString
@@ -64,8 +62,8 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
     
-    public func testCreateUsers() {
-        let userManager = userManagerType().init()
+    public func testCreateUsers() throws {
+        let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let userId1 = UUID().uuidString
@@ -94,8 +92,8 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
     
-    public func testUpdateUser() {
-        let userManager = userManagerType().init()
+    public func testUpdateUser() throws {
+        let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let userId = UUID().uuidString
@@ -128,8 +126,8 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
     
-    public func testGetUser() {
-        let userManager = userManagerType().init()
+    public func testGetUser() throws {
+        let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let userId = UUID().uuidString
@@ -160,8 +158,8 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
     
-    public func testGetUsersWithNicknameFilter() {
-        let userManager = userManagerType().init()
+    public func testGetUsersWithNicknameFilter() throws {
+        let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let userId1 = UUID().uuidString
@@ -198,8 +196,8 @@ open class UserManagerBaseTests: XCTestCase {
     }
     
     // Test that trying to create more than 10 users at once should fail
-    public func testCreateUsersLimit() {
-        let userManager = userManagerType().init()
+    public func testCreateUsersLimit() throws {
+        let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let users = (0..<11).map { UserCreationParams(userId: "user_id_\(UUID().uuidString)\($0)", nickname: "nickname_\(UUID().uuidString)\($0)", profileURL: nil) }
@@ -221,8 +219,8 @@ open class UserManagerBaseTests: XCTestCase {
     }
     
     // Test race condition when simultaneously trying to update and fetch a user
-    public func testUpdateUserRaceCondition() {
-        let userManager = userManagerType().init()
+    public func testUpdateUserRaceCondition() throws {
+        let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let userId = UUID().uuidString
@@ -263,8 +261,8 @@ open class UserManagerBaseTests: XCTestCase {
     }
     
     // Test for edge cases where the nickname to be matched is either empty or consists of spaces
-    public func testGetUsersWithEmptyNickname() {
-        let userManager = userManagerType().init()
+    public func testGetUsersWithEmptyNickname() throws {
+        let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
 
         let expectation = self.expectation(description: "Wait for users retrieval with empty nickname filter")
@@ -282,8 +280,8 @@ open class UserManagerBaseTests: XCTestCase {
         wait(for: [expectation], timeout: 10.0)
     }
     
-    public func testRateLimitCreateUser() {
-        let userManager = userManagerType().init()
+    public func testRateLimitCreateUser() throws {
+        let userManager = try XCTUnwrap(self.userManager())
         userManager.initApplication(applicationId: applicationId, apiToken: apiToken)
         
         // Concurrently create 11 users

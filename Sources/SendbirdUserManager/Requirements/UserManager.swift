@@ -12,8 +12,6 @@ public typealias UsersResult = Result<[SBUser], Error>
 
 /// Sendbird User Managent를 위한 SDK interface입니다.
 public protocol SBUserManager {
-    init()
-    
     var networkClient: SBNetworkClient { get }
     var userStorage: SBUserStorage { get }
     

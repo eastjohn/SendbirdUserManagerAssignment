@@ -9,19 +9,19 @@ import XCTest
 @testable import SendbirdUserManager
 
 final class UserManagerTests: UserManagerBaseTests {
-    override func userManagerType() -> SBUserManager.Type! {
-        MockUserManager.self
+    override func userManager() -> SBUserManager {
+        MockUserManager()
     }
 }
 
 final class UserStorageTests: UserStorageBaseTests {
-    override func userStorageType() -> SBUserStorage.Type! {
-        MockUserStorage.self
+    override func userStorage() -> SBUserStorage? {
+        MockUserStorage()
     }
 }
 
 //final class NetworkClientTests: NetworkClientBaseTests {
-//    override func networkClientType() -> SBNetworkClient.Type! {
-//        MockNetworkClient.self
+//    override func networkClient() -> SBNetworkClient? {
+//        MockNetworkClient()
 //    }
 //}
