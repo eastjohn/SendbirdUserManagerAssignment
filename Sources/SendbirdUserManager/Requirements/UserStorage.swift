@@ -9,8 +9,6 @@ import Foundation
 
 /// Sendbird User 를 관리하기 위한 storage class입니다
 public protocol SBUserStorage {
-    init()
-    
     /// 해당 User를 저장 또는 업데이트합니다
     func upsertUser(_ user: SBUser)
     

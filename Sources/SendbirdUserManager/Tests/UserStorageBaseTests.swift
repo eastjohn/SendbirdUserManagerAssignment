@@ -10,14 +10,12 @@ import XCTest
 
 /// Unit Testing을 위해 제공되는 base test suite입니다.
 /// 사용을 위해서는 해당 클래스를 상속받고,
-/// `open func userStorageType() -> SBUserStorage.Type!`를 override한뒤, 본인이 구현한 SBUserStorage의 타입을 반환하도록 합니다. 
+/// `open func userStorage() -> SBUserStorage?`를 override한뒤, 본인이 구현한 SBUserStorage의 인스턴스를 반환하도록 합니다.
 open class UserStorageBaseTests: XCTestCase {
-    open func userStorageType() -> SBUserStorage.Type! {
-        return nil
-    }
+    open func userStorage() -> SBUserStorage? { nil }
     
-    public func testSetUser() {
-        let storage = self.userStorageType().init()
+    public func testSetUser() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let user = SBUser(userId: "1")
         storage.upsertUser(user)
@@ -27,8 +25,8 @@ open class UserStorageBaseTests: XCTestCase {
     }
     
     
-    public func testSetAndGetUser() {
-        let storage = self.userStorageType().init()
+    public func testSetAndGetUser() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let user = SBUser(userId: "1")
         storage.upsertUser(user)
@@ -37,8 +35,8 @@ open class UserStorageBaseTests: XCTestCase {
         XCTAssertEqual(user.nickname, retrievedUser?.nickname)
     }
     
-    public func testGetAllUsers() {
-        let storage = self.userStorageType().init()
+    public func testGetAllUsers() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let users = [SBUser(userId: "1"), SBUser(userId: "2")]
         
@@ -50,8 +48,8 @@ open class UserStorageBaseTests: XCTestCase {
         XCTAssertEqual(users.count, retrievedUsers.count)
     }
     
-    public func testThreadSafety() {
-        let storage = self.userStorageType().init()
+    public func testThreadSafety() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let user = SBUser(userId: "1")
         
@@ -78,8 +76,8 @@ open class UserStorageBaseTests: XCTestCase {
         waitForExpectations(timeout: 10, handler: nil)
     }
     
-    public func testConcurrentWrites() {
-        let storage = self.userStorageType().init()
+    public func testConcurrentWrites() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let expectation = self.expectation(description: "Concurrent writes")
         expectation.expectedFulfillmentCount = 10
@@ -95,8 +93,8 @@ open class UserStorageBaseTests: XCTestCase {
         waitForExpectations(timeout: 10, handler: nil)
     }
     
-    public func testConcurrentReads() {
-        let storage = self.userStorageType().init()
+    public func testConcurrentReads() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let user = SBUser(userId: "1")
         storage.upsertUser(user)
@@ -114,8 +112,8 @@ open class UserStorageBaseTests: XCTestCase {
         waitForExpectations(timeout: 10, handler: nil)
     }
     
-    public func testMixedReadsAndWrites() {
-        let storage = self.userStorageType().init()
+    public func testMixedReadsAndWrites() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let expectation = self.expectation(description: "Mixed reads and writes")
         expectation.expectedFulfillmentCount = 20
@@ -136,8 +134,8 @@ open class UserStorageBaseTests: XCTestCase {
         waitForExpectations(timeout: 10, handler: nil)
     }
     
-    public func testPerformanceOfSetUser() {
-        let storage = self.userStorageType().init()
+    public func testPerformanceOfSetUser() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let user = SBUser(userId: "1")
         
@@ -148,8 +146,8 @@ open class UserStorageBaseTests: XCTestCase {
         }
     }
     
-    public func testPerformanceOfGetUser() {
-        let storage = self.userStorageType().init()
+    public func testPerformanceOfGetUser() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let user = SBUser(userId: "1")
         storage.upsertUser(user)
@@ -161,8 +159,8 @@ open class UserStorageBaseTests: XCTestCase {
         }
     }
     
-    public func testPerformanceOfGetAllUsers() {
-        let storage = self.userStorageType().init()
+    public func testPerformanceOfGetAllUsers() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         for i in 0..<1_000 {
             let user = SBUser(userId: "\(i)")
@@ -175,8 +173,8 @@ open class UserStorageBaseTests: XCTestCase {
     }
 
     
-    public func testStress() {
-        let storage = self.userStorageType().init()
+    public func testStress() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let user = SBUser(userId: "1")
         
@@ -186,8 +184,8 @@ open class UserStorageBaseTests: XCTestCase {
         }
     }
     
-    public func testInterleavedSetAndGet() {
-        let storage = self.userStorageType().init()
+    public func testInterleavedSetAndGet() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let expectation = self.expectation(description: "Interleaved set and get")
         expectation.expectedFulfillmentCount = 20
@@ -216,8 +214,8 @@ open class UserStorageBaseTests: XCTestCase {
         waitForExpectations(timeout: 10, handler: nil)
     }
     
-    public func testBulkSetsAndSingleGet() {
-        let storage = self.userStorageType().init()
+    public func testBulkSetsAndSingleGet() throws {
+        let storage = try XCTUnwrap(self.userStorage())
         
         let setExpectation = self.expectation(description: "Bulk sets")
         setExpectation.expectedFulfillmentCount = 10

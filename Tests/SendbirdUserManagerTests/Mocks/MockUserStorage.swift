@@ -12,7 +12,7 @@ class MockUserStorage: SBUserStorage {
     private var cache = [String: SBUser]()
     private let queue = DispatchQueue(label: "com.SBUserstorage.queue", attributes: .concurrent)
 
-    required init() {}
+    init() {}
 
     func setUser(_ user: SBUser, for userId: String) {
         queue.async(flags: .barrier) {
