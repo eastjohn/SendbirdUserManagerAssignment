@@ -53,6 +53,6 @@ public protocol SBUserManager {
     
     /// Nickname을 필터로 사용하여 해당 nickname을 가진 User 목록을 가져옵니다
     /// GET API를 호출하고 캐시에 저장합니다
-    /// Get users API를 활용할 때 limit은 10으로 고정합니다
+    /// Get users API를 활용할 때 limit은 100으로 고정합니다
     func getUsers(nicknameMatches: String, completionHandler: ((UsersResult) -> Void)?)
 }
