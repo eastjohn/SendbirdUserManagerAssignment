@@ -30,3 +30,9 @@ enum Method: String {
     case post = "POST"
     case put = "PUT"
 }
+
+struct ErrorMessageResponse: Decodable {
+    let message: String
+    let code: Int
+    let error: Bool
+}
