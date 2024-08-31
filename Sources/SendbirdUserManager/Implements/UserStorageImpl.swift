@@ -23,3 +23,11 @@ final class UserStorageImpl: SBUserStorage {
         nil
     }
 }
+
+private protocol Cache {
+    associatedtype D
+    func get(_ key: String) -> D?
+    func getAll() -> [SBUser]
+    func set(_ key: String, data: D)
+    func clear()
+}
