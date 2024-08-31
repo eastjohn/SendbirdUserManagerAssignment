@@ -95,6 +95,29 @@ final class UserManagerImpl: SBUserManager {
     }
 
     func updateUser(params: UserUpdateParams, completionHandler: ((UserResult) -> Void)?) {
+        do {
+            try checkUserUpdateParams(params)
+        } catch {
+            completionHandler?(.failure(error))
+            return
+        }
+        queue.run { [weak self] in
+            guard let ss = self else {
+                completionHandler?(.failure(SBUserManagerError.nilSelf))
+                return
+            }
+            guard let session = ss.session else {
+                completionHandler?(.failure(SBUserManagerError.notInitialized))
+                return
+            }
+            ss.networkClient.request(request: UpdateUserRequest(userId: params.userId, nickname: params.nickname, profileUrl: params.profileURL)) { [weak weakSelf = ss, taskSessionId = session.applicationId] result in
+                guard let ss = weakSelf else {
+                    completionHandler?(.failure(SBUserManagerError.nilSelf))
+                    return
+                }
+                ss.handleUpdatedUserResult(result: result, taskSessionId: taskSessionId, completionHandler: completionHandler)
+            }
+        }
     }
 
     func getUser(userId: String, completionHandler: ((UserResult) -> Void)?) {
@@ -118,6 +141,21 @@ extension UserManagerImpl {
             throw SBUserManagerError.userIdLengthExceeded
         }
         if params.nickname.count > Constants.maximumLengthOfNickname {
+            throw SBUserManagerError.nicknameLengthExceeded
+        }
+        if let profileURL = params.profileURL, profileURL.count > Constants.maximumLengthOfProfileUrl {
+            throw SBUserManagerError.profileUrlLengthExcceded
+        }
+    }
+
+    private func checkUserUpdateParams(_ params: UserUpdateParams) throws {
+        if params.userId.isEmpty {
+            throw SBUserManagerError.emptyUserId
+        }
+        if params.userId.count > Constants.maximumLengthOfUserId {
+            throw SBUserManagerError.userIdLengthExceeded
+        }
+        if let nickname = params.nickname, nickname.count > Constants.maximumLengthOfNickname {
             throw SBUserManagerError.nicknameLengthExceeded
         }
         if let profileURL = params.profileURL, profileURL.count > Constants.maximumLengthOfProfileUrl {
@@ -220,6 +258,32 @@ extension UserManagerImpl {
                 } else {
                     completionHandler?(.failure(SBUserManagerError.failedContinueCreateUsers(createdUsers: results.createdUsers, failedUsers: results.failedUsers)))
                 }
+            }
+
+        case .failure(let error):
+            completionHandler?(.failure(error))
+        }
+    }
+
+    private func handleUpdatedUserResult(
+        result: Result<UpdateUserRequest.Response, Error>,
+        taskSessionId: String,
+        completionHandler: ((UserResult) -> Void)?
+    ) {
+        switch result {
+        case .success(let response):
+            queue.run { [weak self] in
+                guard let ss = self else {
+                    completionHandler?(.failure(SBUserManagerError.nilSelf))
+                    return
+                }
+                guard ss.isValidTaskSession(sessionId: taskSessionId) else {
+                    completionHandler?(.failure(SBUserManagerError.invalidSession))
+                    return
+                }
+                let user = SBUser(userId: response.userId, nickname: response.nickname, profileURL: response.profileUrl)
+                ss.userStorage.upsertUser(user)
+                completionHandler?(.success(user))
             }
 
         case .failure(let error):
