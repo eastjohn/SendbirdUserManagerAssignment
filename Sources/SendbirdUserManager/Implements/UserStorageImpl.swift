@@ -31,3 +31,23 @@ private protocol Cache {
     func set(_ key: String, data: D)
     func clear()
 }
+
+private final class MemoryCache: Cache {
+    var storage: [String: SBUser] = [:]
+
+    func get(_ key: String) -> SBUser? {
+        storage[key]
+    }
+
+    func getAll() -> [SBUser] {
+        storage.map { $0.value }
+    }
+
+    func set(_ key: String, data: SBUser) {
+        storage[key] = data
+    }
+
+    func clear() {
+        storage = [:]
+    }
+}
