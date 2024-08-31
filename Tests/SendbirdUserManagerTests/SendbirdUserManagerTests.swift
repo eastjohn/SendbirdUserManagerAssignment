@@ -10,13 +10,13 @@ import XCTest
 
 final class UserManagerTests: UserManagerBaseTests {
     override func userManager() -> SBUserManager {
-        MockUserManager()
+        UserManagerImpl()
     }
 }
 
 final class UserStorageTests: UserStorageBaseTests {
     override func userStorage() -> SBUserStorage? {
-        MockUserStorage()
+        UserStorageImpl()
     }
 }
 
