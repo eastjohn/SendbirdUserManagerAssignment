@@ -38,3 +38,49 @@ struct ErrorMessageResponse: Decodable {
 }
 
 typealias DTOModel = Request & Requestable & Responsible
+
+struct CreateUserRequest: DTOModel, Encodable {
+    typealias Response = UserResponse
+
+    let userId: String
+    let nickname: String
+    let profileUrl: String?
+
+    enum CodingKeys: String, CodingKey {
+        case userId
+        case nickname
+        case profileUrl
+    }
+
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(userId, forKey: .userId)
+        try container.encode(nickname, forKey: .nickname)
+        try container.encode(profileUrl, forKey: .profileUrl)
+    }
+
+    struct UserResponse: Decodable {
+        let userId: String
+        let nickname: String
+        let profileUrl: String?
+    }
+
+    func makeURLRequest(url: URL, headers: [String: String]) -> URLRequest? {
+        var urlRequest = URLRequest(url: url.appendingPathComponent(APIConstants.createUserEndPoint))
+        urlRequest.httpMethod = Method.post.rawValue
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        guard let body = try? encoder.encode(self) else { return nil }
+        urlRequest.httpBody = body
+        headers.forEach { key, value in
+            urlRequest.addValue(value, forHTTPHeaderField: key)
+        }
+        return urlRequest
+    }
+
+    func makeResponse<Response>(data: Data) -> Response? {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try? decoder.decode(UserResponse.self, from: data) as? Response
+    }
+}
