@@ -36,3 +36,5 @@ struct ErrorMessageResponse: Decodable {
     let code: Int
     let error: Bool
 }
+
+typealias DTOModel = Request & Requestable & Responsible
