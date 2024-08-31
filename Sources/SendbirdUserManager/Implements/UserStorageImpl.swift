@@ -30,7 +30,9 @@ final class UserStorageImpl: SBUserStorage {
     }
 
     func getUser(for userId: String) -> (SBUser)? {
-        nil
+        queue.sync {
+            cache.get(userId)
+        }
     }
 }
 
