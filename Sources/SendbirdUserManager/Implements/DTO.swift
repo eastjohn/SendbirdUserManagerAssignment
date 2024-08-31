@@ -149,3 +149,41 @@ struct GetUserRequest: DTOModel {
         return try? decoder.decode(GetUserResponse.self, from: data) as? Response
     }
 }
+
+struct GetUsersRequest: DTOModel {
+    typealias Response = GetUsersResponse
+
+    let nickname: String
+    let limit: Int
+
+    struct GetUsersResponse: Decodable {
+        let users: [User]
+
+        struct User: Decodable {
+            let userId: String
+            let nickname: String
+            let profileUrl: String?
+        }
+    }
+
+    func makeURLRequest(url: URL, headers: [String: String]) -> URLRequest? {
+        var component = URLComponents(url: url.appendingPathComponent(APIConstants.getUsersEndPoint), resolvingAgainstBaseURL: false)
+        component?.queryItems = [
+            .init(name: "limit", value: "\(limit)"),
+            .init(name: "nickname", value: nickname)
+        ]
+        guard let url = component?.url else { return nil }
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = Method.get.rawValue
+        headers.forEach { key, value in
+            urlRequest.addValue(value, forHTTPHeaderField: key)
+        }
+        return urlRequest
+    }
+
+    func makeResponse<Response>(data: Data) -> Response? {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try? decoder.decode(GetUsersResponse.self, from: data) as? Response
+    }
+}
