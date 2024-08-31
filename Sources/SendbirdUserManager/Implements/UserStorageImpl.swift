@@ -34,6 +34,12 @@ final class UserStorageImpl: SBUserStorage {
             cache.get(userId)
         }
     }
+    
+    func clear() {
+        queue.async(flags: .barrier) { [weak self] in
+            self?.cache.clear()
+        }
+    }
 }
 
 private protocol Cache {
