@@ -6,3 +6,13 @@
 //
 
 import Foundation
+
+extension Request {
+    func createRequestMaker() -> Requestable? {
+        self as? Requestable
+    }
+}
+
+protocol Requestable {
+    func makeURLRequest(url: URL, headers: [String: String]) -> URLRequest?
+}
