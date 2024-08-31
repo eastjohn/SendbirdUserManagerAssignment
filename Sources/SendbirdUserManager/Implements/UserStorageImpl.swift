@@ -8,7 +8,13 @@
 import Foundation
 
 final class UserStorageImpl: SBUserStorage {
+    private let queue: DispatchQueue = .init(label: "com.userStorageQueue.concurrency", attributes: .concurrent)
+    private let cache = MemoryCache()
+    
     func upsertUser(_ user: SBUser) {
+        queue.async(flags: .barrier) { [weak self] in
+            self?.cache.set(user.userId, data: user)
+        }
     }
 
     func getUsers() -> [SBUser] {
