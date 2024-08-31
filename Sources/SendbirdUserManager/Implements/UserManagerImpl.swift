@@ -59,6 +59,39 @@ final class UserManagerImpl: SBUserManager {
     }
 
     func createUsers(params: [UserCreationParams], completionHandler: ((UsersResult) -> Void)?) {
+        guard params.count <= Constants.maximumUserCount else {
+            completionHandler?(.failure(SBUserManagerError.creatingUsersExceeded))
+            return
+        }
+        var params = params
+        let firstParam = params.removeFirst()
+        queue.run { [weak self] in
+            guard let ss = self else {
+                completionHandler?(.failure(SBUserManagerError.nilSelf))
+                return
+            }
+            guard let session = ss.session else {
+                completionHandler?(.failure(SBUserManagerError.notInitialized))
+                return
+            }
+            ss.createUser(params: firstParam) { [weak weakSelf = ss, taskSessionId = session.applicationId] result in
+                guard let ss = weakSelf else {
+                    completionHandler?(.failure(SBUserManagerError.nilSelf))
+                    return
+                }
+                guard ss.isValidTaskSession(sessionId: taskSessionId) else {
+                    completionHandler?(.failure(SBUserManagerError.invalidSession))
+                    return
+                }
+                ss.continueCreateUser(params: params, results: ContinueCreateUserResults(result: result, param: firstParam), taskSessionId: taskSessionId) { [weak weakSelf = ss] result in
+                    guard let ss = weakSelf else {
+                        completionHandler?(.failure(SBUserManagerError.nilSelf))
+                        return
+                    }
+                    ss.handleContinueCreatedUserResult(result: result, completionHandler: completionHandler)
+                }
+            }
+        }
     }
 
     func updateUser(params: UserUpdateParams, completionHandler: ((UserResult) -> Void)?) {
@@ -123,6 +156,76 @@ extension UserManagerImpl {
             }
         }
     }
+    
+    private func continueCreateUser(params: [UserCreationParams], results: ContinueCreateUserResults, taskSessionId: String, completionHandler: @escaping (Result<ContinueCreateUserResults, Error>) -> Void) {
+        guard let firstParam = params.first else {
+            completionHandler(.success(results))
+            return
+        }
+        var params = params
+        params.removeFirst()
+        queue.asyncAfter(deadline: .now() + Constants.nextRequestTime) { [weak self] in
+            guard let ss = self else {
+                completionHandler(.failure(SBUserManagerError.nilSelf))
+                return
+            }
+            guard ss.isValidTaskSession(sessionId: taskSessionId) else {
+                completionHandler(.failure(SBUserManagerError.invalidSession))
+                return
+            }
+            ss.createUser(params: firstParam, completionHandler: { [weak weakSelf = ss] result in
+                guard let ss = weakSelf else {
+                    completionHandler(.failure(SBUserManagerError.nilSelf))
+                    return
+                }
+                ss.queue.run { [weak weakSelf = ss] in
+                    guard let ss = weakSelf else {
+                        completionHandler(.failure(SBUserManagerError.nilSelf))
+                        return
+                    }
+                    guard ss.isValidTaskSession(sessionId: taskSessionId) else {
+                        completionHandler(.failure(SBUserManagerError.invalidSession))
+                        return
+                    }
+                    let results =
+                    switch result {
+                    case .success(let user):
+                        results.appendingCreatedUser(user)
+
+                    case .failure(let error):
+                        results.appendingFailedUser(.init(userId: firstParam.userId, nickname: firstParam.nickname, profileURL: firstParam.profileURL), error: error)
+                    }
+                    ss.continueCreateUser(params: params, results: results, taskSessionId: taskSessionId, completionHandler: completionHandler)
+                }
+            })
+        }
+    }
+
+    private func handleContinueCreatedUserResult(
+        result: Result<UserManagerImpl.ContinueCreateUserResults, Error>,
+        completionHandler: ((UsersResult) -> Void)?
+    ) {
+        switch result {
+        case .success(let results):
+            queue.run { [weak self] in
+                guard let ss = self else {
+                    completionHandler?(.failure(SBUserManagerError.nilSelf))
+                    return
+                }
+                results.createdUsers.forEach {
+                    ss.userStorage.upsertUser($0)
+                }
+                if results.failedUsers.isEmpty {
+                    completionHandler?(.success(results.createdUsers))
+                } else {
+                    completionHandler?(.failure(SBUserManagerError.failedContinueCreateUsers(createdUsers: results.createdUsers, failedUsers: results.failedUsers)))
+                }
+            }
+
+        case .failure(let error):
+            completionHandler?(.failure(error))
+        }
+    }
 }
 
 extension UserManagerImpl {
@@ -130,5 +233,38 @@ extension UserManagerImpl {
         static let maximumLengthOfUserId = 80
         static let maximumLengthOfNickname = 80
         static let maximumLengthOfProfileUrl = 2048
+        static let maximumUserCount = 10
+
+        static let nextRequestTime: TimeInterval = 1.0
+    }
+    
+    private struct ContinueCreateUserResults {
+        let createdUsers: [SBUser]
+        let failedUsers: [(SBUser, Error)]
+
+        init(result: UserResult, param: UserCreationParams) {
+            switch result {
+            case .success(let user):
+                createdUsers = [user]
+                failedUsers = []
+
+            case .failure(let error):
+                failedUsers = [(.init(userId: param.userId, nickname: param.nickname, profileURL: param.profileURL), error)]
+                createdUsers = []
+            }
+        }
+
+        private init(createdUsers: [SBUser], failedUsers: [(SBUser, Error)]) {
+            self.createdUsers = createdUsers
+            self.failedUsers = failedUsers
+        }
+
+        func appendingCreatedUser(_ user: SBUser) -> Self {
+            .init(createdUsers: createdUsers + [user], failedUsers: failedUsers)
+        }
+
+        func appendingFailedUser(_ user: SBUser, error: Error) -> Self {
+            .init(createdUsers: createdUsers, failedUsers: failedUsers + [(user, error)])
+        }
     }
 }
