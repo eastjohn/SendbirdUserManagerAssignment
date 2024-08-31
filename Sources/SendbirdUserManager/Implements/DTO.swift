@@ -122,3 +122,30 @@ struct UpdateUserRequest: DTOModel {
         return try? decoder.decode(UpdateUserResponse.self, from: data) as? Response
     }
 }
+
+struct GetUserRequest: DTOModel {
+    typealias Response = GetUserResponse
+
+    let userId: String
+
+    struct GetUserResponse: Decodable {
+        let userId: String
+        let nickName: String
+        let profileUrl: String?
+    }
+
+    func makeURLRequest(url: URL, headers: [String: String]) -> URLRequest? {
+        var urlRequest = URLRequest(url: url.appendingPathComponent(APIConstants.getUserEndPoint.replacingOccurrences(of: "{user_id}", with: userId)))
+        urlRequest.httpMethod = Method.get.rawValue
+        headers.forEach { key, value in
+            urlRequest.addValue(value, forHTTPHeaderField: key)
+        }
+        return urlRequest
+    }
+
+    func makeResponse<Response>(data: Data) -> Response? {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try? decoder.decode(GetUserResponse.self, from: data) as? Response
+    }
+}
