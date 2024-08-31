@@ -121,6 +121,31 @@ final class UserManagerImpl: SBUserManager {
     }
 
     func getUser(userId: String, completionHandler: ((UserResult) -> Void)?) {
+        guard !userId.isEmpty else {
+            completionHandler?(.failure(SBUserManagerError.emptyUserId))
+            return
+        }
+        queue.run { [weak self] in
+            guard let ss = self else {
+                completionHandler?(.failure(SBUserManagerError.nilSelf))
+                return
+            }
+            guard let session = ss.session else {
+                completionHandler?(.failure(SBUserManagerError.notInitialized))
+                return
+            }
+            if let user = ss.userStorage.getUser(for: userId) {
+                completionHandler?(.success(user))
+            } else {
+                ss.networkClient.request(request: GetUserRequest(userId: userId)) { [weak weakSelf = ss, taskSessionId = session.applicationId] result in
+                    guard let ss = weakSelf else {
+                        completionHandler?(.failure(SBUserManagerError.nilSelf))
+                        return
+                    }
+                    ss.handleGotUserResult(result: result, taskSessionId: taskSessionId, completionHandler: completionHandler)
+                }
+            }
+        }
     }
 
     func getUsers(nicknameMatches: String, completionHandler: ((UsersResult) -> Void)?) {
@@ -282,6 +307,32 @@ extension UserManagerImpl {
                     return
                 }
                 let user = SBUser(userId: response.userId, nickname: response.nickname, profileURL: response.profileUrl)
+                ss.userStorage.upsertUser(user)
+                completionHandler?(.success(user))
+            }
+
+        case .failure(let error):
+            completionHandler?(.failure(error))
+        }
+    }
+
+    private func handleGotUserResult(
+        result: Result<GetUserRequest.Response, Error>,
+        taskSessionId: String,
+        completionHandler: ((UserResult) -> Void)?
+    ) {
+        switch result {
+        case .success(let response):
+            queue.run { [weak self] in
+                guard let ss = self else {
+                    completionHandler?(.failure(SBUserManagerError.nilSelf))
+                    return
+                }
+                guard ss.isValidTaskSession(sessionId: taskSessionId) else {
+                    completionHandler?(.failure(SBUserManagerError.invalidSession))
+                    return
+                }
+                let user = SBUser(userId: response.userId, nickname: response.nickName, profileURL: response.profileUrl)
                 ss.userStorage.upsertUser(user)
                 completionHandler?(.success(user))
             }
