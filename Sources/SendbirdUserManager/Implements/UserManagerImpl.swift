@@ -149,6 +149,27 @@ final class UserManagerImpl: SBUserManager {
     }
 
     func getUsers(nicknameMatches: String, completionHandler: ((UsersResult) -> Void)?) {
+        guard !nicknameMatches.isEmpty else {
+            completionHandler?(.failure(SBUserManagerError.emptyNickname))
+            return
+        }
+        queue.run { [weak self] in
+            guard let ss = self else {
+                completionHandler?(.failure(SBUserManagerError.nilSelf))
+                return
+            }
+            guard let session = ss.session else {
+                completionHandler?(.failure(SBUserManagerError.notInitialized))
+                return
+            }
+            ss.networkClient.request(request: GetUsersRequest(nickname: nicknameMatches, limit: Constants.queryLimitCount)) { [weak weakSelf = ss, taskSessionId = session.applicationId]  result in
+                guard let ss = weakSelf else {
+                    completionHandler?(.failure(SBUserManagerError.nilSelf))
+                    return
+                }
+                ss.handleGotUsersResult(result: result, taskSessionId: taskSessionId, completionHandler: completionHandler)
+            }
+        }
     }
 }
 
@@ -341,6 +362,36 @@ extension UserManagerImpl {
             completionHandler?(.failure(error))
         }
     }
+
+    private func handleGotUsersResult(
+        result: Result<GetUsersRequest.Response, Error>,
+        taskSessionId: String,
+        completionHandler: ((UsersResult) -> Void)?
+    ) {
+        switch result {
+        case .success(let response):
+            queue.run { [weak self] in
+                guard let ss = self else {
+                    completionHandler?(.failure(SBUserManagerError.nilSelf))
+                    return
+                }
+                guard ss.isValidTaskSession(sessionId: taskSessionId) else {
+                    completionHandler?(.failure(SBUserManagerError.invalidSession))
+                    return
+                }
+                let users = response.users.map {
+                    SBUser(userId: $0.userId, nickname: $0.nickname, profileURL: $0.profileUrl)
+                }
+                users.forEach {
+                    ss.userStorage.upsertUser($0)
+                }
+                completionHandler?(.success(users))
+            }
+
+        case .failure(let error):
+            completionHandler?(.failure(error))
+        }
+    }
 }
 
 extension UserManagerImpl {
@@ -351,6 +402,7 @@ extension UserManagerImpl {
         static let maximumUserCount = 10
 
         static let nextRequestTime: TimeInterval = 1.0
+        static let queryLimitCount = 100
     }
     
     private struct ContinueCreateUserResults {
