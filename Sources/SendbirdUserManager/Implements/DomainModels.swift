@@ -9,6 +9,10 @@ import Foundation
 
 enum APIConstants {
     static let baseURL = "https://api-{application_id}.sendbird.com/v3"
+    static let createUserEndPoint = "/users"
+    static let updateUserEndPoint = "/users/{user_id}"
+    static let getUserEndPoint = "/users/{user_id}"
+    static let getUsersEndPoint = "/users"
 }
 
 struct Session {
