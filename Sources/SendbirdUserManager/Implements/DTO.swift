@@ -24,3 +24,9 @@ protocol Requestable {
 protocol Responsible {
     func makeResponse<Response>(data: Data) -> Response?
 }
+
+enum Method: String {
+    case get = "GET"
+    case post = "POST"
+    case put = "PUT"
+}
