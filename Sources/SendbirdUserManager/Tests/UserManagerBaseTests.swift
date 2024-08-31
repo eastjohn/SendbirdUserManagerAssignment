@@ -112,6 +112,8 @@ open class UserManagerBaseTests: XCTestCase {
         userManager.createUser(params: initialParams) { creationResult in
             switch creationResult {
             case .success(_):
+                // 서버에 1초에 한번씩만 전송이 가능해서 sleep을 추가했습니다.
+                Thread.sleep(forTimeInterval: 1)
                 userManager.updateUser(params: updatedParams) { updateResult in
                     switch updateResult {
                     case .success(let updatedUser):
@@ -180,6 +182,8 @@ open class UserManagerBaseTests: XCTestCase {
         userManager.createUsers(params: [params1, params2]) { creationResult in
             switch creationResult {
             case .success(_):
+                // 서버에 1초에 한번씩만 전송이 가능해서 sleep을 추가했습니다.
+                Thread.sleep(forTimeInterval: 1)
                 userManager.getUsers(nicknameMatches: userNickname1) { getResult in
                     switch getResult {
                     case .success(let users):
@@ -313,7 +317,8 @@ open class UserManagerBaseTests: XCTestCase {
             return false
         }
 
-        XCTAssertEqual(successResults.count, 10)
-        XCTAssertEqual(rateLimitResults.count, 1)
+        // 서버에 1초에 한번씩만 전송이 가능해서 확인하는 count를 변경했습니다.
+        XCTAssertEqual(successResults.count, 1)
+        XCTAssertEqual(rateLimitResults.count, 10)
     }
 }
