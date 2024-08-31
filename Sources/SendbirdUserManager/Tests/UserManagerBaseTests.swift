@@ -25,7 +25,11 @@ open class UserManagerBaseTests: XCTestCase {
         
         let userId = UUID().uuidString
         let initialUser = UserCreationParams(userId: userId, nickname: "hello", profileURL: nil)
-        userManager.createUser(params: initialUser) { _ in }
+        let expectation = expectation(description: "wait create user result")
+        userManager.createUser(params: initialUser) { _ in
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 2)
         
         // Check if the data exist
         let users = userManager.userStorage.getUsers()
