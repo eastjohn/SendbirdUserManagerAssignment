@@ -90,3 +90,4 @@ fastlane/test_output
 iOSInjectionProject/
 
 SendbirdUserManager.xcframework*
+.DS_Store
