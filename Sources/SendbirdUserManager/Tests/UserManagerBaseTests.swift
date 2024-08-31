@@ -14,14 +14,14 @@ import XCTest
 open class UserManagerBaseTests: XCTestCase {
     open func userManager() -> SBUserManager? { nil }
     
-    public let applicationId = ""   // Note: add an application ID
-    public let apiToken = ""        // Note: add an API Token
+    public let applicationId = "136D7DD2-B463-42B7-A17D-331FB812235C"   // Note: add an application ID
+    public let apiToken = "024a0ed5ebe8859238218ae3d00213958cafdfbc"        // Note: add an API Token
     
     public func testInitApplicationWithDifferentAppIdClearsData() throws {
         let userManager = try XCTUnwrap(self.userManager())
         
         // First init
-        userManager.initApplication(applicationId: "AppID1", apiToken: "Token1")    // Note: Add the first application ID and API Token
+        userManager.initApplication(applicationId: "E5B06894-8AE6-4782-90E1-1613042C54BA", apiToken: "a8e62a44f03a626070eb347511c9f21a00df7625")    // Note: Add the first application ID and API Token
         
         let userId = UUID().uuidString
         let initialUser = UserCreationParams(userId: userId, nickname: "hello", profileURL: nil)
@@ -32,7 +32,7 @@ open class UserManagerBaseTests: XCTestCase {
         XCTAssertEqual(users.count, 1, "User should exist with an initial Application ID")
         
         // Second init with a different App ID
-        userManager.initApplication(applicationId: "AppID2", apiToken: "Token2")    // Note: Add the second application ID and API Token
+        userManager.initApplication(applicationId: "136D7DD2-B463-42B7-A17D-331FB812235C", apiToken: "024a0ed5ebe8859238218ae3d00213958cafdfbc")    // Note: Add the second application ID and API Token
         
         // Check if the data is cleared
         let clearedUsers = userManager.userStorage.getUsers()
