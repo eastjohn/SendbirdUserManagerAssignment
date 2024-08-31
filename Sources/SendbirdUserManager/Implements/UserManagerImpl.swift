@@ -29,6 +29,33 @@ final class UserManagerImpl: SBUserManager {
     }
 
     func createUser(params: UserCreationParams, completionHandler: ((UserResult) -> Void)?) {
+        do {
+            try checkUserCreateParams(params)
+        } catch {
+            completionHandler?(.failure(error))
+            return
+        }
+        guard userStorage.getUser(for: params.userId) == nil else {
+            completionHandler?(.failure(SBUserManagerError.alreadyExistUser))
+            return
+        }
+        queue.run { [weak self] in
+            guard let ss = self else {
+                completionHandler?(.failure(SBUserManagerError.nilSelf))
+                return
+            }
+            guard let session = ss.session else {
+                completionHandler?(.failure(SBUserManagerError.notInitialized))
+                return
+            }
+            ss.networkClient.request(request: CreateUserRequest(userId: params.userId, nickname: params.nickname, profileUrl: params.profileURL)) { [taskSessionId = session.applicationId] result in
+                guard let ss = self else {
+                    completionHandler?(.failure(SBUserManagerError.nilSelf))
+                    return
+                }
+                ss.handleCreatedUserResult(result, taskSessionId: taskSessionId, completionHandler: completionHandler)
+            }
+        }
     }
 
     func createUsers(params: [UserCreationParams], completionHandler: ((UsersResult) -> Void)?) {
@@ -48,5 +75,60 @@ extension UserManagerImpl {
     private func shouldClearStorage(applicationId: String) -> Bool {
         queue.preconditionOnQueue()
         return session?.applicationId != applicationId
+    }
+
+    private func checkUserCreateParams(_ params: UserCreationParams) throws {
+        if params.userId.isEmpty {
+            throw SBUserManagerError.emptyUserId
+        }
+        if params.userId.count > Constants.maximumLengthOfUserId {
+            throw SBUserManagerError.userIdLengthExceeded
+        }
+        if params.nickname.count > Constants.maximumLengthOfNickname {
+            throw SBUserManagerError.nicknameLengthExceeded
+        }
+        if let profileURL = params.profileURL, profileURL.count > Constants.maximumLengthOfProfileUrl {
+            throw SBUserManagerError.profileUrlLengthExcceded
+        }
+    }
+
+    private func isValidTaskSession(sessionId: String) -> Bool {
+        queue.preconditionOnQueue()
+        return session?.applicationId == sessionId
+        
+    }
+
+    private func handleCreatedUserResult(
+        _ result: Result<CreateUserRequest.Response, Error>,
+        taskSessionId: String,
+        completionHandler: ((UserResult) -> Void)?
+    ) {
+        queue.run { [weak self] in
+            guard let ss = self else {
+                completionHandler?(.failure(SBUserManagerError.nilSelf))
+                return
+            }
+            guard ss.isValidTaskSession(sessionId: taskSessionId) else {
+                completionHandler?(.failure(SBUserManagerError.invalidSession))
+                return
+            }
+            switch result {
+            case .success(let response):
+                let user = SBUser(userId: response.userId, nickname: response.nickname, profileURL: response.profileUrl)
+                ss.userStorage.upsertUser(user)
+                completionHandler?(.success(user))
+
+            case .failure(let error):
+                completionHandler?(.failure(error))
+            }
+        }
+    }
+}
+
+extension UserManagerImpl {
+    private enum Constants {
+        static let maximumLengthOfUserId = 80
+        static let maximumLengthOfNickname = 80
+        static let maximumLengthOfProfileUrl = 2048
     }
 }
