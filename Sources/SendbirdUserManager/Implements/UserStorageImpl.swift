@@ -24,7 +24,9 @@ final class UserStorageImpl: SBUserStorage {
     }
 
     func getUsers(for nickname: String) -> [SBUser] {
-        []
+        queue.sync {
+            cache.getAll().filter { nickname == $0.nickname }
+        }
     }
 
     func getUser(for userId: String) -> (SBUser)? {
